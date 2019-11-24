@@ -83,6 +83,96 @@ commands."
   :group '1ml-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Indentation
+
+(defun 1ml-point-in-comment? ()
+  "Determine whether point is in a comment."
+  (nth 4 (syntax-ppss)))
+
+(defun 1ml-line-ends-in-comment? ()
+  "Determine whether current line ends in a comment."
+  (save-excursion
+    (end-of-line)
+    (1ml-point-in-comment?)))
+
+(defconst 1ml-indent-sync-keywords-regexp
+  (concat "\\s-*\\<\\("
+          (regexp-opt '("do" "end" "in" "let" "local" "include" "type"))
+          "\\)\\>"))
+
+(defun 1ml-previous-indentation ()
+  "Find the previous indentation level and evidence."
+  (save-excursion
+    (let ((semis 0)
+          (min-indent nil)
+          (result nil))
+      (beginning-of-line)
+      (while (not (or (consp result) (bobp) (eq 0 min-indent)))
+        (forward-line -1)
+        (when (not (looking-at "^\\s-*$"))
+          (let ((ci (current-indentation)))
+            (setq min-indent (if min-indent (min min-indent ci) ci))))
+        (cond ((and (looking-at ".*[{]\\s-*$")
+                    (not (1ml-line-ends-in-comment?)))
+               (let* ((indent (if (looking-at "\\s-*[{]")
+                                  (current-indentation)
+                                (car (1ml-previous-indentation))))
+                      (offset (if (looking-at "\\s-*[}]") 0 1ml-indentation-offset)))
+                 (setq result (cons (+ indent offset) '{))))
+              ((looking-at "\\s-*[}]")
+               (setq result (cons (current-indentation) '})))
+              ((looking-at 1ml-indent-sync-keywords-regexp)
+               (let* ((data (match-data))
+                      (start (nth 2 data))
+                      (stop (nth 3 data))
+                      (word (buffer-substring start stop)))
+                 (setq result (cons (current-indentation) (intern word)))))
+              ((and (looking-at ".*[;]\\s-*$")
+                    (not (1ml-line-ends-in-comment?)))
+               (setq semis (+ 1 semis))
+               (when (> semis 1)
+                 (setq result (cons min-indent '\;))))))
+      (cond ((consp result)
+             result)
+            ((numberp min-indent)
+             (cons min-indent 'min))
+            (t
+             '(0 . min))))))
+
+(defun 1ml-indent-line ()
+  "Indent current line as 1ML code."
+  (interactive)
+  (let* ((indent-evidence (1ml-previous-indentation))
+         (indent (car indent-evidence))
+         (evidence (cdr indent-evidence)))
+    (save-excursion
+      (beginning-of-line)
+      (skip-chars-forward " \t")
+      (cond ((looking-at "end\\>")
+             (case evidence
+               ((in let local)
+                (indent-line-to indent))
+               (t
+                (indent-line-to
+                 (max 0 (- indent 1ml-indentation-offset))))))
+            ((looking-at "in\\>")
+             (case evidence
+               ((let local)
+                (indent-line-to indent))
+               (t
+                (indent-line-to (max 0 (- indent 1ml-indentation-offset))))))
+            ((looking-at "[}]")
+             (indent-line-to (max 0 (- indent 1ml-indentation-offset))))
+            (t
+             (case evidence
+               ((in let local)
+                (indent-line-to (+ indent 1ml-indentation-offset)))
+               (t
+                (indent-line-to indent))))))
+    (if (< (current-column) (current-indentation))
+        (forward-char (- (current-indentation) (current-column))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax and highlighting
 
 (defconst 1ml-scoping-kws '("do" "end" "in" "let" "local" "type"))
@@ -204,7 +294,8 @@ commands."
 
 See the customization group `1ml'."
   :group '1ml
-  (set (make-local-variable 'font-lock-defaults) '(1ml-font-lock-table)))
+  (set (make-local-variable 'font-lock-defaults) '(1ml-font-lock-table))
+  (set (make-local-variable 'indent-line-function) '1ml-indent-line))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Finalization
