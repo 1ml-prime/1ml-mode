@@ -2,9 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 (require 'flycheck-1ml)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -215,7 +212,7 @@ commands."
 
 (defun 1ml-first-match (&rest regexps)
   "Return only first match group of `REGEXPS'."
-  (lexical-let ((regexp (apply 'concat regexps)))
+  (let ((regexp (apply 'concat regexps)))
     (lambda (limit)
       (when (save-excursion (re-search-forward regexp limit t))
         (let ((data (match-data)))
