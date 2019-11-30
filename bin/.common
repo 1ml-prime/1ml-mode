@@ -10,17 +10,20 @@ fi
 
 PRELUDE="${COMPILER%/*}/prelude.1ml"
 
-SOURCES=("$PRELUDE")
+PROJECT=".1ml-sources"
 
-PROJECT="$PWD"
-while ! [ -f "$PROJECT/sources" ] && [[ "$PROJECT" =~ / ]]; do
-  PROJECT="${PROJECT%/*}"
+# Try to find project root directory containing $PROJECT file
+ROOT="$PWD"
+while ! [ -f "$ROOT/$PROJECT" ] && [[ "$ROOT" =~ / ]]; do
+  ROOT="${ROOT%/*}"
 done
 
-if [ -f "$PROJECT/sources" ]; then
+# Fill $SOURCES[@] array with paths to source files
+SOURCES=("$PRELUDE")
+if [ -f "$ROOT/$PROJECT" ]; then
   while IFS= read -r LINE; do
     if [[ "$LINE" =~ \.1ml ]]; then
-      SOURCES+=("$PROJECT/$LINE")
+      SOURCES+=("$ROOT/$LINE")
     fi
-  done < "$PROJECT/sources"
+  done < "$ROOT/$PROJECT"
 fi
