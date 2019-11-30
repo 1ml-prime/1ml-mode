@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+if ! COMPILER="$(command -v 1ml)"; then
+  cat <<EOF
+This script expects to have the 1ml command in PATH and the prelude.1ml to be in
+the same directory as the 1ml command.
+EOF
+  exit 1
+fi
+
+PRELUDE="${COMPILER%/*}/prelude.1ml"
+
+SOURCES=("$PRELUDE")
+
+PROJECT="$PWD"
+while ! [ -f "$PROJECT/sources" ] && [[ "$PROJECT" =~ / ]]; do
+  PROJECT="${PROJECT%/*}"
+done
+
+if [ -f "$PROJECT/sources" ]; then
+  while IFS= read -r LINE; do
+    if [[ "$LINE" =~ \.1ml ]]; then
+      SOURCES+=("$PROJECT/$LINE")
+    fi
+  done < "$PROJECT/sources"
+fi

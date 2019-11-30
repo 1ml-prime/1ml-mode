@@ -1,0 +1,32 @@
+#!/bin/bash -e
+
+# shellcheck source=.common
+. "${BASH_SOURCE%/*}/.common"
+
+if [ $# -ne 2 ] || ! [ -f "$1" ] || ! [ -f "$2" ]; then
+  cat <<EOF
+Usage: ${0##*/} ORIGINAL.1ml REPLACEMENT.1ml
+
+Runs the 1ML compiler to parse and type check the program replacing the
+ORIGINAL.1ml file with the REPLACEMENT.1ml.
+EOF
+  exit 1
+fi
+
+ORIGINAL="$1"
+REPLACEMENT="$2"
+
+N_REPLACED=0
+
+for i in "${!SOURCES[@]}"; do
+  if [ "$ORIGINAL" = "${SOURCES[$i]}" ]; then
+    N_REPLACED=$((N_REPLACED+1))
+    SOURCES[$i]="$REPLACEMENT"
+  fi
+done
+
+if [ $N_REPLACED -eq 0 ]; then
+  SOURCES+=("$REPLACEMENT")
+fi
+
+1ml -d "${SOURCES[@]}"

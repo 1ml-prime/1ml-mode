@@ -8,7 +8,7 @@
   "A 1ML checker using the 1ML compiler.
 
 See URL `https://github.com/1ml-prime/1ml-mode'."
-  :command ("1ml-check" source-original source)
+  :command ("1ml-flycheck" source-original source)
   :error-patterns
   ((warning line-start (file-name) ":" line "." column "-" (+ num) "." (+ num) ": warning: " (message) line-end)
    (error   line-start (file-name) ":" line "." column "-" (+ num) "." (+ num) ": " (message) line-end))
