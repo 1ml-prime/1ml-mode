@@ -5,6 +5,8 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'flycheck-1ml)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization
 
