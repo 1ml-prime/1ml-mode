@@ -182,7 +182,7 @@ commands."
 (defconst 1ml-conditional-kws '("and" "else" "if" "or" "then"))
 (defconst 1ml-pattern-kws '("_" "as"))
 
-(defconst 1ml-definition-skws '("="))
+(defconst 1ml-definition-skws '("=" "..."))
 (defconst 1ml-functional-skws '("=>" "@"))
 (defconst 1ml-typing-skws '(":" ":>" "->"))
 
