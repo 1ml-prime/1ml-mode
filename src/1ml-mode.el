@@ -198,7 +198,9 @@ commands."
     (mapc (function
            (lambda (char-flags)
              (modify-syntax-entry (car char-flags) (cdr char-flags) table)))
-          '((?\; . ". 12")
+          '((?\; . ". 123")
+            (?\( . "()1nb")
+            (?\) . ")(4nb")
             (?\n . ">")
             (?\\ . "\\_")
             (?'  . "w")
