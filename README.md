@@ -1,4 +1,4 @@
-# 1ML mode for Emacs
+# 1ML mode for Emacs [![Gitter](https://badges.gitter.im/1ml-prime/community.svg)](https://gitter.im/1ml-prime/community)
 
 This is the beginnings of an [Emacs](https://www.gnu.org/software/emacs/) mode
 for [1ML](https://people.mpi-sws.org/~rossberg/1ml/).
