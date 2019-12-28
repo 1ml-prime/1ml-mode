@@ -3,4 +3,4 @@
 # shellcheck source=.common
 . "${BASH_SOURCE%/*}/.common"
 
-1ml -d "${SOURCES[@]}" "$@"
+1ml -c -d "${SOURCES[@]}" "$@"
