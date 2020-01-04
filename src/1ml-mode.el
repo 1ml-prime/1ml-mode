@@ -224,9 +224,9 @@ commands."
 
 (defun 1ml-skws-match (skws)
   "Return first match of `SKWS'."
-  (1ml-first-match 1ml-not-symbolic-char-re
+  (1ml-first-match "\\(?:" 1ml-not-symbolic-char-re "\\|^\\)"
                    "\\(" (regexp-opt skws) "\\)"
-                   1ml-not-symbolic-char-re))
+                   "\\(?:" 1ml-not-symbolic-char-re "\\|$\\)"))
 
 (defvar 1ml-font-lock-table nil)
 
