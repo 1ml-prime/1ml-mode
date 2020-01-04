@@ -212,9 +212,9 @@ commands."
           "\\)"))
 (defconst 1ml-scoping-kws '("in" "let"))
 (defconst 1ml-functional-kws '("fun" "rec"))
-(defconst 1ml-typing-kws '("type" "unwrap" "with" "wrap"))
+(defconst 1ml-typing-kws '("data" "type" "unwrap" "with" "wrap"))
 (defconst 1ml-primitive-kws '("primitive"))
-(defconst 1ml-conditional-kws '("else" "if" "then"))
+(defconst 1ml-conditional-kws '("case" "else" "if" "then"))
 (defconst 1ml-pattern-kws '("_" "as"))
 
 (defconst 1ml-typing-sckws-prefix "\\(?:(\\s-*\\)")
