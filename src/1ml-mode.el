@@ -174,7 +174,7 @@ commands."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax and highlighting
 
-(defconst 1ml-scoping-kws '("do" "end" "in" "let" "local" "type"))
+(defconst 1ml-scoping-kws '("do" "end" "in" "let" "local" "type" "type_error" ))
 (defconst 1ml-definition-kws '("include"))
 (defconst 1ml-functional-kws '("fun" "rec"))
 (defconst 1ml-typing-kws '("unwrap" "with" "wrap"))
