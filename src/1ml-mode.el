@@ -179,9 +179,10 @@ commands."
 (defconst 1ml-functional-kws '("fun" "rec"))
 (defconst 1ml-typing-kws '("unwrap" "with" "wrap"))
 (defconst 1ml-primitive-kws '("primitive"))
-(defconst 1ml-conditional-kws '("and" "else" "if" "or" "then"))
+(defconst 1ml-conditional-kws '("else" "if" "then"))
 (defconst 1ml-pattern-kws '("_" "as"))
 
+(defconst 1ml-conditional-skws '("&&" "||"))
 (defconst 1ml-definition-skws '("=" "..."))
 (defconst 1ml-functional-skws '("=>" "@"))
 (defconst 1ml-typing-skws '(":" ":>" "->"))
@@ -244,6 +245,7 @@ commands."
      (,(1ml-kws-match 1ml-pattern-kws) . 1ml-pattern-face)
 
      ;; symbolic keywords
+     (,(1ml-skws-match 1ml-conditional-skws) . 1ml-conditional-face)
      (,(1ml-skws-match 1ml-definition-skws) . 1ml-definition-face)
      (,(1ml-skws-match 1ml-functional-skws) . 1ml-functional-face)
      (,(1ml-skws-match 1ml-typing-skws) . 1ml-typing-face)
