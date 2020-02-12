@@ -209,25 +209,17 @@ commands."
     table)
   "Syntax table for 1ML mode.")
 
-(defun 1ml-kws-match (kws)
-  "Return first match of `KWS'."
-  (concat "\\<" (regexp-opt kws) "\\>"))
+(defun 1ml-kws-match (kws &optional prefix)
+  "Return first match of `KWS' requiring optional `PREFIX'."
+  (concat prefix "\\<\\(" (if (listp kws) (regexp-opt kws) kws) "\\)\\>"))
 
-(defun 1ml-first-match (&rest regexps)
-  "Return only first match group of `REGEXPS'."
-  (let ((regexp (apply 'concat regexps)))
-    (lambda (limit)
-      (when (save-excursion (re-search-forward regexp limit t))
-        (let ((data (match-data)))
-          (set-match-data (list (nth 2 data) (nth 3 data)))
-          (goto-char (nth 3 data))
-          t)))))
-
-(defun 1ml-skws-match (skws)
-  "Return first match of `SKWS'."
-  (1ml-first-match "\\(?:" 1ml-not-symbolic-char-re "\\|^\\)"
-                   "\\(" (regexp-opt skws) "\\)"
-                   "\\(?:" 1ml-not-symbolic-char-re "\\|$\\)"))
+(defun 1ml-skws-match (skws &optional prefix)
+  "Return first match of `SKWS' requiring optional `PREFIX'."
+  (concat
+   (if prefix prefix
+     (concat "\\(?:" 1ml-not-symbolic-char-re "\\|^\\)"))
+   "\\(" (if (listp skws) (regexp-opt skws) skws) "\\)"
+   "\\(?:" 1ml-not-symbolic-char-re "\\|$\\)"))
 
 (defvar 1ml-font-lock-table nil)
 
@@ -245,10 +237,10 @@ commands."
      (,(1ml-kws-match 1ml-pattern-kws) . 1ml-pattern-face)
 
      ;; symbolic keywords
-     (,(1ml-skws-match 1ml-conditional-skws) . 1ml-conditional-face)
-     (,(1ml-skws-match 1ml-definition-skws) . 1ml-definition-face)
-     (,(1ml-skws-match 1ml-functional-skws) . 1ml-functional-face)
-     (,(1ml-skws-match 1ml-typing-skws) . 1ml-typing-face)
+     (,(1ml-skws-match 1ml-conditional-skws) (1 1ml-conditional-face))
+     (,(1ml-skws-match 1ml-definition-skws) (1 1ml-definition-face))
+     (,(1ml-skws-match 1ml-functional-skws) (1 1ml-functional-face))
+     (,(1ml-skws-match 1ml-typing-skws) (1 1ml-typing-face))
 
      ;; symbolic identifiers
      (,(concat 1ml-symbolic-char-re "+") . 1ml-symbolic-face)
@@ -260,7 +252,7 @@ commands."
      ("\\<'\\(?:[^\\\n]\\|[\\].\\)'" . font-lock-string-face)
 
      ;; tick
-     (,(1ml-first-match "\\<\\([']\\)\\(?:\\w+[^']\\|(\\)") . 1ml-typing-face)
+     (,"\\<\\([']\\)\\(?:\\w+[^']\\|(\\)" (1 1ml-typing-face))
 
      ;; member access
      ("[.]" . 1ml-parenthesized-face)
