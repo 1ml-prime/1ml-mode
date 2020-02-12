@@ -62,12 +62,17 @@ commands."
   :group '1ml-faces)
 
 (deffacevar 1ml-functional-face
-  '((t (:foreground "MediumSpringGreen")))
+  '((t (:foreground "SpringGreen")))
   "Font Lock mode face used to highlight 1ML functional constructs."
   :group '1ml-faces)
 
+(deffacevar 1ml-scoping-face
+  '((t (:bold t :foreground "MediumAquaMarine")))
+  "Font Lock mode face used to highlight 1ML scoping constructs."
+  :group '1ml-faces)
+
 (deffacevar 1ml-pattern-face
-  '((t (:foreground "DeepPink")))
+  '((t (:foreground "DarkTurquoise")))
   "Font Lock mode face used to highlight 1ML pattern constructs."
   :group '1ml-faces)
 
@@ -95,14 +100,25 @@ commands."
     (1ml-point-in-comment?)))
 
 (defconst 1ml-indent-sync-keywords-regexp
-  (concat "\\s-*\\<\\("
-          (regexp-opt '("do" "end" "in" "let" "local" "include" "type"))
-          "\\)\\>"))
+  (concat "\\s-*"
+          "\\(" "\\.\\.\\.\\s-*let"
+          "\\|" "\\.\\.\\."
+          "\\|" "\\<" (regexp-opt '("and" "do" "in" "let" "rec" "type")) "\\>"
+          "\\)"))
+
+(defun 1ml-match-evidence ()
+  "Get evidence after match."
+  (let* ((data (match-data))
+         (start (nth 2 data))
+         (stop (nth 3 data))
+         (word (buffer-substring start stop)))
+    (intern (replace-regexp-in-string "\\s-" "" word))))
 
 (defun 1ml-previous-indentation ()
   "Find the previous indentation level and evidence."
   (save-excursion
     (let ((semis 0)
+          (closes 0)
           (min-indent nil)
           (result nil))
       (beginning-of-line)
@@ -111,26 +127,30 @@ commands."
         (when (not (looking-at "^\\s-*$"))
           (let ((ci (current-indentation)))
             (setq min-indent (if min-indent (min min-indent ci) ci))))
-        (cond ((and (looking-at ".*[{]\\s-*$")
+        (cond ((and (looking-at ".*\\([{]\\)\\s-*$")
                     (not (1ml-line-ends-in-comment?)))
-               (let* ((indent (if (looking-at "\\s-*[{]")
-                                  (current-indentation)
-                                (car (1ml-previous-indentation))))
-                      (offset (if (looking-at "\\s-*[}]") 0 1ml-indentation-offset)))
-                 (setq result (cons (+ indent offset) '{))))
-              ((looking-at "\\s-*[}]")
-               (setq result (cons (current-indentation) '})))
-              ((looking-at 1ml-indent-sync-keywords-regexp)
-               (let* ((data (match-data))
-                      (start (nth 2 data))
-                      (stop (nth 3 data))
-                      (word (buffer-substring start stop)))
-                 (setq result (cons (current-indentation) (intern word)))))
-              ((and (looking-at ".*[;]\\s-*$")
+               (if (> closes 0)
+                   (setq closes (- closes 1))
+                 (setq result (cons (current-indentation) (1ml-match-evidence)))))
+              ((and (looking-at ".*\\(\\<let\\>\\)\\s-*$")
                     (not (1ml-line-ends-in-comment?)))
-               (setq semis (+ 1 semis))
+               (setq result (cons (current-indentation) (1ml-match-evidence))))
+              ((and (< closes 1)
+                    (< semis 1)
+                    (looking-at ".*\\(=\\|=>\\|->\\)\\s-*$")
+                    (not (1ml-line-ends-in-comment?)))
+               (setq result (cons (current-indentation) (1ml-match-evidence))))
+              ((looking-at "\\s-*\\(}\\)")
+               (setq closes (+ 1 closes)))
+              ((and (< closes 1)
+                    (looking-at 1ml-indent-sync-keywords-regexp))
+               (setq result (cons (current-indentation) (1ml-match-evidence))))
+              ((and (looking-at ".*\\(;\\)\\s-*$")
+                    (not (1ml-line-ends-in-comment?)))
+               (when (< closes 1)
+                 (setq semis (+ 1 semis)))
                (when (> semis 1)
-                 (setq result (cons min-indent '\;))))))
+                 (setq result (cons min-indent (1ml-match-evidence)))))))
       (cond ((consp result)
              result)
             ((numberp min-indent)
@@ -147,24 +167,27 @@ commands."
     (save-excursion
       (beginning-of-line)
       (skip-chars-forward " \t")
-      (cond ((looking-at "end\\>")
+      (cond ((looking-at "in\\>")
              (case evidence
-               ((in let local)
-                (indent-line-to indent))
-               (t
-                (indent-line-to
-                 (max 0 (- indent 1ml-indentation-offset))))))
-            ((looking-at "in\\>")
-             (case evidence
-               ((let local)
+               ((let \.\.\.let)
                 (indent-line-to indent))
                (t
                 (indent-line-to (max 0 (- indent 1ml-indentation-offset))))))
+            ((looking-at "[{]")
+             (case evidence
+               ((=>)
+                (indent-line-to (+ indent 1ml-indentation-offset)))
+               (t
+                (indent-line-to indent))))
             ((looking-at "[}]")
-             (indent-line-to (max 0 (- indent 1ml-indentation-offset))))
+             (case evidence
+               ((\{)
+                (indent-line-to indent))
+               (t
+                (indent-line-to (max 0 (- indent 1ml-indentation-offset))))))
             (t
              (case evidence
-               ((in let local)
+               ((in let \.\.\.let \{ = => ->)
                 (indent-line-to (+ indent 1ml-indentation-offset)))
                (t
                 (indent-line-to indent))))))
@@ -174,10 +197,22 @@ commands."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax and highlighting
 
-(defconst 1ml-scoping-kws '("do" "end" "in" "let" "local" "type" "type_error" ))
-(defconst 1ml-definition-kws '("include"))
+(defconst 1ml-binding-ckws-prefix "\\(?:\\(?:^\\|[;{]\\)\\s-*\\)")
+(defconst 1ml-binding-ckws
+  (concat "\\(?:" "rec\\s-+type"
+          "\\|" (regexp-opt '("rec" "type"))
+          "\\)"))
+(defconst 1ml-pattern-ckws-prefix "\\(?:(\\s-*\\)")
+(defconst 1ml-pattern-ckws-suffix "\\(?:\\(?:\\s-*[a-zA-Z0-9_]+\\)+)\\)")
+(defconst 1ml-pattern-ckws '("type"))
+
+(defconst 1ml-binding-kws
+  (concat "\\(?:" "and\\s-+type"
+          "\\|" (regexp-opt '("and" "do" "type_error"))
+          "\\)"))
+(defconst 1ml-scoping-kws '("in" "let"))
 (defconst 1ml-functional-kws '("fun" "rec"))
-(defconst 1ml-typing-kws '("unwrap" "with" "wrap"))
+(defconst 1ml-typing-kws '("type" "unwrap" "with" "wrap"))
 (defconst 1ml-primitive-kws '("primitive"))
 (defconst 1ml-conditional-kws '("else" "if" "then"))
 (defconst 1ml-pattern-kws '("_" "as"))
@@ -185,8 +220,9 @@ commands."
 (defconst 1ml-typing-sckws-prefix "\\(?:(\\s-*\\)")
 (defconst 1ml-typing-sckws '("="))
 
+(defconst 1ml-binding-skws '("..."))
 (defconst 1ml-conditional-skws '("&&" "||"))
-(defconst 1ml-definition-skws '("=" "..."))
+(defconst 1ml-definition-skws '("="))
 (defconst 1ml-functional-skws '("=>" "@"))
 (defconst 1ml-typing-skws '(":" ":>" "->"))
 
@@ -212,9 +248,11 @@ commands."
     table)
   "Syntax table for 1ML mode.")
 
-(defun 1ml-kws-match (kws &optional prefix)
-  "Return first match of `KWS' requiring optional `PREFIX'."
-  (concat prefix "\\<\\(" (if (listp kws) (regexp-opt kws) kws) "\\)\\>"))
+(defun 1ml-kws-match (kws &optional prefix suffix)
+  "Return first match of `KWS' requiring optional `PREFIX' and `SUFFIX'."
+  (concat prefix
+          "\\<\\(" (if (listp kws) (regexp-opt kws) kws) "\\)\\>"
+          suffix))
 
 (defun 1ml-skws-match (skws &optional prefix)
   "Return first match of `SKWS' requiring optional `PREFIX'."
@@ -230,9 +268,15 @@ commands."
   "Builds the font-lock table for the 1ML mode."
   (setq
    1ml-font-lock-table
-   `(;; keywords
-     (,(1ml-kws-match 1ml-scoping-kws) . font-lock-keyword-face)
-     (,(1ml-kws-match 1ml-definition-kws) . 1ml-definition-face)
+   `(;; context sensitive keywords
+     (,(1ml-kws-match 1ml-binding-ckws 1ml-binding-ckws-prefix)
+      (1 font-lock-keyword-face))
+     (,(1ml-kws-match 1ml-pattern-ckws 1ml-pattern-ckws-prefix 1ml-pattern-ckws-suffix)
+      (1 1ml-pattern-face))
+
+     ;; keywords
+     (,(1ml-kws-match 1ml-binding-kws) . font-lock-keyword-face)
+     (,(1ml-kws-match 1ml-scoping-kws) . 1ml-scoping-face)
      (,(1ml-kws-match 1ml-functional-kws) . 1ml-functional-face)
      (,(1ml-kws-match 1ml-typing-kws) . 1ml-typing-face)
      (,(1ml-kws-match 1ml-primitive-kws) . font-lock-builtin-face)
@@ -244,6 +288,7 @@ commands."
       (1 1ml-typing-face))
 
      ;; symbolic keywords
+     (,(1ml-skws-match 1ml-binding-skws) (1 font-lock-keyword-face))
      (,(1ml-skws-match 1ml-conditional-skws) (1 1ml-conditional-face))
      (,(1ml-skws-match 1ml-definition-skws) (1 1ml-definition-face))
      (,(1ml-skws-match 1ml-functional-skws) (1 1ml-functional-face))
