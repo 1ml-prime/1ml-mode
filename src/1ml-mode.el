@@ -203,7 +203,7 @@ commands."
           "\\|" (regexp-opt '("rec" "type"))
           "\\)"))
 (defconst 1ml-pattern-ckws-prefix "\\(?:(\\s-*\\)")
-(defconst 1ml-pattern-ckws-suffix "\\(?:\\(?:\\s-*[a-zA-Z0-9_]+\\)+)\\)")
+(defconst 1ml-pattern-ckws-suffix "\\(?:\\(?:\\s-*[a-zA-Z0-9_]+\\)+\\s-*)\\)")
 (defconst 1ml-pattern-ckws '("type"))
 
 (defconst 1ml-binding-kws
