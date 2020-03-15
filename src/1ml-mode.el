@@ -197,7 +197,7 @@ commands."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax and highlighting
 
-(defconst 1ml-binding-ckws-prefix "\\(?:\\(?:^\\|[;{]\\|\\<let\\>\\)\\s-*\\)")
+(defconst 1ml-binding-ckws-prefix "\\(?:\\(?:^\\|[,{]\\|\\<let\\>\\)\\s-*\\)")
 (defconst 1ml-binding-ckws
   (concat "\\(?:" "rec\\s-+type"
           "\\|" (regexp-opt '("rec" "type"))
