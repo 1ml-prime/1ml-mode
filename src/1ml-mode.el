@@ -86,6 +86,11 @@ commands."
   "Font Lock mode face used to highlight 1ML symbolic constructs."
   :group '1ml-faces)
 
+(deffacevar 1ml-infix-face
+  '((t (:bold t :foreground "Khaki")))
+  "Font Lock mode face used to highlight 1ML infix constructs."
+  :group '1ml-faces)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indentation
 
@@ -229,6 +234,10 @@ commands."
 (defconst 1ml-symbolic-chars "~!#$%&*+/:<=>?@\\\\`|^-")
 (defconst 1ml-symbolic-char-re (concat "[" 1ml-symbolic-chars "]"))
 (defconst 1ml-not-symbolic-char-re (concat "[^" 1ml-symbolic-chars "]"))
+(defconst 1ml-symbolic-re (concat 1ml-symbolic-char-re "+"))
+
+(defconst 1ml-name-re "[A-Za-z_][0-9A-Za-z_']*")
+(defconst 1ml-infix-re (concat "`" 1ml-name-re "`"))
 
 (defconst 1ml-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -294,8 +303,11 @@ commands."
      (,(1ml-skws-match 1ml-functional-skws) (1 1ml-functional-face))
      (,(1ml-skws-match 1ml-typing-skws) (1 1ml-typing-face))
 
+     ;; infix identifiers
+     (,1ml-infix-re . 1ml-infix-face)
+
      ;; symbolic identifiers
-     (,(concat 1ml-symbolic-char-re "+") . 1ml-symbolic-face)
+     (,1ml-symbolic-re . 1ml-symbolic-face)
 
      ;; constants
      ("\\<\\([1-9][0-9]*\\|0\\|true\\|false\\)\\>" . font-lock-constant-face)
