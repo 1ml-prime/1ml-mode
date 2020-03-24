@@ -202,7 +202,8 @@ commands."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax and highlighting
 
-(defconst 1ml-binding-ckws-prefix "\\(?:\\(?:^\\|[,{]\\|\\<let\\>\\)\\s-*\\)")
+(defconst 1ml-binding-ckws-prefix
+  "\\(?:\\(?:^\\|[,{]\\|\\<let\\>\\|\\<local\\>\\)\\s-*\\)")
 (defconst 1ml-binding-ckws
   (concat "\\(?:" "rec\\s-+type"
           "\\|" (regexp-opt '("rec" "type"))
@@ -215,7 +216,7 @@ commands."
   (concat "\\(?:" "and\\s-+type"
           "\\|" (regexp-opt '("and" "do" "type_error"))
           "\\)"))
-(defconst 1ml-scoping-kws '("in" "let"))
+(defconst 1ml-scoping-kws '("in" "let" "local"))
 (defconst 1ml-functional-kws '("fun" "rec"))
 (defconst 1ml-typing-kws '("type" "unwrap" "with" "wrap"))
 (defconst 1ml-primitive-kws '("primitive"))
