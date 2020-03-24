@@ -1,6 +1,0 @@
-#!/bin/bash -e
-
-# shellcheck source=.common
-. "${BASH_SOURCE%/*}/.common"
-
-1ml -c -d "${SOURCES[@]}" "$@"
