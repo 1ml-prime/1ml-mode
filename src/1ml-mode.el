@@ -91,6 +91,16 @@ commands."
   "Font Lock mode face used to highlight 1ML infix constructs."
   :group '1ml-faces)
 
+(deffacevar 1ml-implicit-face
+  '((t (:foreground "Wheat")))
+  "Font Lock mode face used to highlight 1ML implicit constructs."
+  :group '1ml-faces)
+
+(deffacevar 1ml-implicit-binding-face
+  '((t (:foreground "Tan")))
+  "Font Lock mode face used to highlight 1ML implicit binding constructs."
+  :group '1ml-faces)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indentation
 
@@ -316,8 +326,11 @@ commands."
      ;; character literal
      ("\\<'\\(?:[^\\\n]\\|[\\].\\)'" . font-lock-string-face)
 
+     ;;
+     (,(concat "\\<" "'" "\\(" 1ml-name-re "\\)" "\\>") (1 1ml-implicit-binding-face))
+
      ;; tick
-     (,"\\<\\([']\\)\\(?:\\w+[^']\\|(\\)" (1 1ml-typing-face))
+     ("\\<\\('\\)\\(?:\\w+[^']\\|(\\)" (1 1ml-implicit-face))
 
      ;; member access
      ("[.]" . 1ml-parenthesized-face)
