@@ -41,14 +41,14 @@ commands."
      (defface ,name ,@body)
      (defvar ,name ',name)))
 
-(deffacevar 1ml-braced-face
+(deffacevar 1ml-structure-face
   '((t (:foreground "SlateGray3")))
-  "Font Lock mode face used to highlight 1ML braced expression."
+  "Font Lock mode face used to highlight 1ML structure constructs."
   :group '1ml-faces)
 
-(deffacevar 1ml-parenthesized-face
-  '((t (:foreground "Gray")))
-  "Font Lock mode face used to highlight 1ML parenthesized expressions."
+(deffacevar 1ml-statement-face
+  '((t (:foreground "Tomato")))
+  "Font Lock mode face used to highlight 1ML statement constructs."
   :group '1ml-faces)
 
 (deffacevar 1ml-typing-face
@@ -332,14 +332,11 @@ commands."
      ;; tick
      ("\\<\\('\\)\\(?:\\w+[^']\\|(\\)" (1 1ml-implicit-face))
 
-     ;; member access
-     ("[.]" . 1ml-parenthesized-face)
+     ;; statements
+     (";" . 1ml-statement-face)
 
-     ;; parenthesized
-     ("[(,)]" . 1ml-parenthesized-face)
-
-     ;; braced
-     ("[{;}]+" . 1ml-braced-face))))
+     ;; structures
+     ("[{(,.)}]" . 1ml-structure-face))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Map
