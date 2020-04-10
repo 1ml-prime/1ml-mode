@@ -152,7 +152,7 @@ commands."
                (setq result (cons (current-indentation) (1ml-match-evidence))))
               ((and (< closes 1)
                     (< semis 1)
-                    (looking-at ".*\\(=\\|=>\\|->\\)\\s-*$")
+                    (looking-at ".*\\(=\\|=>\\|->\\|~>\\)\\s-*$")
                     (not (1ml-line-ends-in-comment?)))
                (setq result (cons (current-indentation) (1ml-match-evidence))))
               ((looking-at "\\s-*\\(}\\)")
@@ -202,7 +202,7 @@ commands."
                 (indent-line-to (max 0 (- indent 1ml-indentation-offset))))))
             (t
              (case evidence
-               ((in let \.\.\.let \{ = => ->)
+               ((in let \.\.\.let \{ = => -> ~>)
                 (indent-line-to (+ indent 1ml-indentation-offset)))
                (t
                 (indent-line-to indent))))))
@@ -240,7 +240,7 @@ commands."
 (defconst 1ml-conditional-skws '("&&" "||"))
 (defconst 1ml-definition-skws '("="))
 (defconst 1ml-functional-skws '("=>" "@"))
-(defconst 1ml-typing-skws '(":" ":>" "->"))
+(defconst 1ml-typing-skws '(":" ":>" "->" "~>"))
 
 (defconst 1ml-symbolic-chars "~!#$%&*+/:<=>?@\\\\`|^-")
 (defconst 1ml-symbolic-char-re (concat "[" 1ml-symbolic-chars "]"))
