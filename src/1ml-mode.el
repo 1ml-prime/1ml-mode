@@ -224,7 +224,7 @@ commands."
 
 (defconst 1ml-binding-kws
   (concat "\\(?:" "and\\s-+type"
-          "\\|" (regexp-opt '("and" "do" "type_error"))
+          "\\|" (regexp-opt '("and" "do" "type_check" "type_error"))
           "\\)"))
 (defconst 1ml-scoping-kws '("in" "let" "local"))
 (defconst 1ml-functional-kws '("fun" "rec"))
